@@ -1,3 +1,5 @@
+"Fabio Kung <fabio.kung@gmail.com>
+"
 "Use Vim settings, rather then Vi settings (much better!).
 "This must be first, because it changes other options as a side effect.
 set nocompatible
@@ -14,8 +16,30 @@ set showmode    "show current mode down the bottom
 set incsearch   "find the next match as we type the search
 set hlsearch    "hilight searches by default
 
-set nowrap      "dont wrap lines
-set linebreak   "wrap lines at convenient points
+set number      "add line numbers
+set showbreak=...
+set wrap linebreak nolist
+
+"mapping for command key to map navigation thru display lines instead
+"of just numbered lines
+vmap <D-j> gj
+vmap <D-k> gk
+vmap <D-4> g$
+vmap <D-6> g^
+vmap <D-0> g^
+nmap <D-j> gj
+nmap <D-k> gk
+nmap <D-4> g$
+nmap <D-6> g^
+nmap <D-0> g^
+
+"disable visual bell
+set visualbell t_vb=
+
+"try to make possible to navigate within lines of wrapped lines
+nmap <Down> gj
+nmap <Up> gk
+set fo=l
 
 "statusline setup
 set statusline=%f       "tail of the filename
@@ -59,6 +83,9 @@ set statusline+=%c,     "cursor column
 set statusline+=%l/%L   "cursor line/total lines
 set statusline+=\ %P    "percent through file
 set laststatus=2
+
+"turn off needless toolbar on gvim/mvim
+set guioptions-=T
 
 "recalculate the trailing whitespace warning when idle, and after saving
 autocmd cursorhold,bufwritepost * unlet! b:statusline_trailing_space_warning
@@ -183,8 +210,9 @@ set wildmenu                "enable ctrl-n and ctrl-p to scroll thru matches
 set wildignore=*.o,*.obj,*~ "stuff to ignore when tab completing
 
 "display tabs and trailing spaces
-set list
-set listchars=tab:\ \ ,extends:>,precedes:<
+"set list
+"set listchars=tab:\ \ ,extends:>,precedes:<
+" disabling list because it interferes with soft wrap
 
 set formatoptions-=o "dont continue comments when pushing o/O
 
@@ -192,6 +220,12 @@ set formatoptions-=o "dont continue comments when pushing o/O
 set scrolloff=3
 set sidescrolloff=7
 set sidescroll=1
+
+"necessary on some Linux distros for pathogen to properly load bundles
+filetype off
+
+"load pathogen managed plugins
+call pathogen#runtime_append_all_bundles()
 
 "load ftplugins and indent files
 filetype plugin on
@@ -204,34 +238,43 @@ syntax on
 set mouse=a
 set ttymouse=xterm2
 
-"tell the term has 256 colors
-set t_Co=256
-
 "hide buffers when not displayed
 set hidden
 
-"dont load csapprox if we no gui support - silences an annoying warning
-if !has("gui")
-    let g:CSApprox_loaded = 1
-else
+"Command-T configuration
+let g:CommandTMaxHeight=10
+let g:CommandTMatchWindowAtTop=1
+
+if has("gui_running")
+    "tell the term has 256 colors
+    set t_Co=256
+
     if has("gui_gnome")
         "set term=gnome-256color
         "set term=builtin_gui
         colorscheme desert
     else
-        set t_Co=256
-        colorscheme vibrantink
+        colorscheme railscasts
         set guitablabel=%M%t
         set lines=40
         set columns=115
     endif
     if has("gui_mac") || has("gui_macvim")
-        set guifont=Menlo:h15
+        set guifont=Menlo:h14
+        " key binding for Command-T to behave properly
+        " uncomment to replace the Mac Command-T key to Command-T plugin
+        "macmenu &File.New\ Tab key=<nop>
+        "map <D-t> :CommandT<CR>
+        " make Mac's Option key behave as the Meta key
+        set invmmta
     endif
     if has("gui_win32") || has("gui_win32s")
         set guifont=Consolas:h12
-				set enc=utf-8
+        set enc=utf-8
     endif
+else
+    "dont load csapprox if there is no gui support - silences an annoying warning
+    let g:CSApprox_loaded = 1
 endif
 
 nmap <silent> <Leader>p :NERDTreeToggle<CR>
@@ -241,10 +284,10 @@ nnoremap <C-L> :nohls<CR><C-L>
 inoremap <C-L> <C-O>:nohls<CR>
 
 "map to bufexplorer
-nnoremap <C-B> :BufExplorer<cr>
+nnoremap <leader>b :BufExplorer<cr>
 
-"map to fuzzy finder text mate stylez
-nnoremap <c-f> :FuzzyFinderTextMate<CR>
+"map to CommandT TextMate style finder
+nnoremap <leader>t :CommandT<CR>
 
 "map Q to something useful
 noremap Q gq
@@ -252,14 +295,25 @@ noremap Q gq
 "make Y consistent with C and D
 nnoremap Y y$
 
+"bindings for ragtag
+inoremap <M-o>       <Esc>o
+inoremap <C-j>       <Down>
+let g:ragtag_global_maps = 1
+
 "mark syntax errors with :signs
 let g:syntastic_enable_signs=1
+
+"key mapping for vimgrep result navigation
+map <A-o> :copen<CR>
+map <A-q> :cclose<CR>
+map <A-j> :cnext<CR>
+map <A-k> :cprevious<CR>
 
 "snipmate setup
 try
   source ~/.vim/snippets/support_functions.vim
 catch
-  source $HOMEPATH\vimfiles\snippets\support_functions.vim
+  source ~/vimfiles/snippets/support_functions.vim
 endtry
 autocmd vimenter * call s:SetupSnippets()
 function! s:SetupSnippets()
